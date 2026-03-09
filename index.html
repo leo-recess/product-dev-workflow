@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Development Workflow — Implementation Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0f11; --surface: #151820; --surface-2: #1c2029;
+    --border: #252a35; --text: #e2e4e9; --text-muted: #8b8fa3; --text-dim: #5c6070;
+    --accent: #4f8cff; --accent-dim: #2a4a8a;
+    --green: #34d399; --green-dim: #1a3d2e;
+    --yellow: #fbbf24; --yellow-dim: #3d3520;
+    --red: #f87171; --red-dim: #3d1f1f;
+    --purple: #a78bfa; --purple-dim: #2d2548;
+    --orange: #fb923c; --orange-dim: #3d2a18;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',-apple-system,sans-serif; background:var(--bg); color:var(--text); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  nav { position:fixed;top:0;left:0;right:0;z-index:100; background:rgba(13,15,17,0.85);backdrop-filter:blur(20px); border-bottom:1px solid var(--border);padding:0 2rem; }
+  nav .nav-inner { max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:2rem;height:56px;overflow-x:auto; }
+  nav a { color:var(--text-muted);text-decoration:none;font-size:0.82rem;font-weight:500;white-space:nowrap;transition:color 0.2s; }
+  nav a:hover { color:var(--text); }
+  nav .nav-title { color:var(--text);font-weight:700;font-size:0.85rem;margin-right:1rem;padding-right:1.5rem;border-right:1px solid var(--border); }
+  .container { max-width:1100px;margin:0 auto;padding:0 2rem; }
+  section { padding:5rem 0;border-bottom:1px solid var(--border); }
+  section:first-of-type { padding-top:7rem; }
+  section:last-of-type { border-bottom:none; }
+  h1 { font-size:2.4rem;font-weight:700;letter-spacing:-0.03em;line-height:1.2;margin-bottom:0.5rem; }
+  h2 { font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.3rem; }
+  h3 { font-size:1.1rem;font-weight:600;margin-bottom:0.4rem; }
+  h4 { font-size:0.95rem;font-weight:600;margin-bottom:0.3rem; }
+  .subtitle { color:var(--text-muted);font-size:1.05rem;margin-bottom:2.5rem;max-width:650px; }
+  .section-label { font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.8rem; }
+  .card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem; }
+  .card-grid { display:grid;gap:1rem; }
+  .card-grid.cols-2 { grid-template-columns:1fr 1fr; }
+  .card-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+  .tag { display:inline-flex;align-items:center;font-size:0.72rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:6px; }
+  .tag-green { background:var(--green-dim);color:var(--green); }
+  .tag-yellow { background:var(--yellow-dim);color:var(--yellow); }
+  .tag-accent { background:var(--accent-dim);color:var(--accent); }
+  .tag-purple { background:var(--purple-dim);color:var(--purple); }
+  .tag-orange { background:var(--orange-dim);color:var(--orange); }
+  .compare-table { width:100%;border-collapse:collapse;font-size:0.88rem; }
+  .compare-table th { text-align:left;padding:0.8rem 1rem;background:var(--surface-2);border-bottom:1px solid var(--border);font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted); }
+  .compare-table td { padding:0.75rem 1rem;border-bottom:1px solid var(--border);vertical-align:top; }
+  .compare-table tr:last-child td { border-bottom:none; }
+  .compare-table .label-col { color:var(--text-muted);font-weight:500;width:25%; }
+  .flow { display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin:1rem 0; }
+  .flow-step { background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;font-weight:500; }
+  .flow-arrow { color:var(--text-dim);font-size:0.9rem; }
+  .stat-row { display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap; }
+  .stat { background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.5rem;flex:1;min-width:140px; }
+  .stat-number { font-size:1.8rem;font-weight:700;letter-spacing:-0.03em;line-height:1; }
+  .stat-label { font-size:0.78rem;color:var(--text-muted);margin-top:0.3rem; }
+  .board { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin-top:1rem; }
+  .board-col { background:var(--surface-2);border-radius:10px;padding:0.8rem; }
+  .board-col-title { font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border); }
+  .board-card { background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.5rem;font-size:0.8rem; }
+  .board-card .board-card-sub { font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem; }
+  .phase-timeline { margin:1.5rem 0; }
+  .phase-item { display:flex;align-items:flex-start;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--border); }
+  .phase-item:last-child { border-bottom:none; }
+  .phase-num { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0; }
+  .phase-content { flex:1; }
+  .phase-content p { font-size:0.85rem;color:var(--text-muted);margin-top:0.2rem; }
+  .callout { background:var(--surface);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:1.2rem 1.5rem;margin:1.5rem 0; }
+  .callout.callout-green { border-left-color:var(--green); }
+  .callout.callout-yellow { border-left-color:var(--yellow); }
+  .callout p { font-size:0.9rem;color:var(--text-muted); }
+  .callout strong { color:var(--text); }
+  .divider { border:none;border-top:1px solid var(--border);margin:2rem 0; }
+  ul.clean { list-style:none;padding:0; }
+  ul.clean li { padding:0.4rem 0;font-size:0.88rem;padding-left:1.2rem;position:relative;color:var(--text-muted); }
+  ul.clean li::before { content:'';position:absolute;left:0;top:0.75rem;width:5px;height:5px;border-radius:50%;background:var(--text-dim); }
+  ul.clean li strong { color:var(--text); }
+  .text-muted { color:var(--text-muted); }
+  .kept-badge { display:inline-flex;background:var(--green-dim);color:var(--green);font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:4px;letter-spacing:0.05em; }
+  .vs-badge { display:inline-flex;background:var(--accent-dim);color:var(--accent);font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:4px;letter-spacing:0.05em; }
+  .tech-badge { display:inline-flex;background:var(--purple-dim);color:var(--purple);font-size:0.7rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:4px;letter-spacing:0.05em; }
+  .diagram-wrap { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.5rem 0;overflow-x:auto; }
+  .diagram-wrap .mermaid { display:flex;justify-content:center; }
+  .build-step { background:var(--surface-2);border-radius:8px;padding:0.8rem 1rem;margin-bottom:0.5rem;font-size:0.85rem; }
+  .build-step .step-num { font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--accent);margin-bottom:0.2rem; }
+  @media (max-width:768px) { h1{font-size:1.8rem;} .card-grid.cols-2,.card-grid.cols-3{grid-template-columns:1fr;} .board{grid-template-columns:1fr;} .stat-row{flex-direction:column;} }
+</style>
+</head>
+<body>
+<nav><div class="nav-inner">
+  <span class="nav-title">Implementation Blueprint</span>
+  <a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#routing">Routing</a><a href="#slack-intake">Slack Intake</a><a href="#active-work">Active Work</a><a href="#new-project">Project Setup</a><a href="#gates">Checkpoints</a><a href="#transcript">Transcript</a><a href="#operations">Operations</a><a href="#capacity">Capacity</a><a href="#build-order">Build Order</a>
+</div></nav>
+<section id="overview"><div class="container">
+  <div class="section-label">Starting Point</div>
+  <h1>Product Development Workflow<br><span style="color:var(--accent)">— Implementation Blueprint</span></h1>
+  <p class="subtitle">Built on Deuce's framework. This document covers both the workflow design and the technical automation that makes it run.</p>
+  <div class="callout"><h4>Core Principle</h4><p><strong>COO gets full visibility and planning control.</strong> Developer keeps execution flexibility. <strong>Automation handles the glue</strong> — task routing, board updates, project creation.</p></div>
+  <div class="card-grid cols-2" style="margin-top:2rem;">
+    <div class="card"><h4 style="color:var(--accent)">COO Gets</h4><ul class="clean"><li><strong>Real-time visibility</strong> into progress, blockers, completions</li><li><strong>Planning control</strong> — ranked backlog, capacity budgets, gate reviews</li><li><strong>Scope protection</strong> — PRD approval before large builds start</li></ul></div>
+    <div class="card"><h4 style="color:var(--green)">Developer Gets</h4><ul class="clean"><li><strong>Automated task capture</strong> — Slack requests become Asana tasks</li><li><strong>Minimal board maintenance</strong> — automations keep projects in sync</li><li><strong>Clear priorities</strong> — ranked backlog, no ambiguity on what's next</li></ul></div>
+  </div>
+</div></section>
+<section id="architecture"><div class="container">
+  <div class="section-label">Architecture</div>
+  <h2>System Overview</h2>
+  <p class="subtitle">One Portfolio. Two core projects. Feature projects when genuinely large. Automation handles routing.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart LR
+    SLACK["Slack /task"] --> AI["AI Analyzes\nThread Context"]
+    AI --> PIPELINE["Pipeline & Backlog\n(COO Plans)"]
+    PIPELINE --> ACTIVE["Active Work\n(Dev Executes)"]
+    PIPELINE -->|"New Project"| FEATURE["Feature Project\n(Auto-Created)"]
+    FEATURE --> ACTIVE
+  </pre></div>
+  <div class="card-grid cols-2" style="margin-top:1.5rem;">
+    <div class="card" style="border-top:3px solid var(--accent)"><span class="tag tag-accent" style="margin-bottom:0.6rem;">PROJECT 1 — COO OWNS</span><h3>Pipeline & Backlog</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Everything enters here. Intake, scoping, prioritization.</p><div class="flow"><div class="flow-step">Intake</div><span class="flow-arrow">→</span><div class="flow-step">Define / PRD</div><span class="flow-arrow">→</span><div class="flow-step">Scope & Estimate</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--green);color:var(--green);">Backlog (Ranked)</div></div></div>
+    <div class="card" style="border-top:3px solid var(--green)"><span class="tag tag-green" style="margin-bottom:0.6rem;">PROJECT 2 — DEVELOPER OWNS</span><h3>Active Work</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">What's being executed. Developer pulls from backlog.</p><div class="flow"><div class="flow-step">This Week</div><span class="flow-arrow">→</span><div class="flow-step">In Progress</div><span class="flow-arrow">→</span><div class="flow-step">In Review</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--green);color:var(--green);">Completed</div></div><div class="flow"><div class="flow-step" style="border-color:var(--red);">Blocked</div><div class="flow-step" style="border-color:var(--yellow);">Next Week</div></div></div>
+  </div>
+  <div class="card" style="margin-top:1rem;border-top:3px solid var(--purple);"><span class="tag tag-purple" style="margin-bottom:0.6rem;">AUTO-CREATED WHEN NEEDED</span><h3>Feature Projects (L/XL)</h3><p class="text-muted" style="font-size:0.85rem;">Large builds get their own project — auto-created from template with phases and milestones.</p></div>
+</div></section>
+<section id="routing"><div class="container">
+  <div class="section-label">Intake & Routing</div>
+  <h2>Size-Based Routing <span class="kept-badge">KEPT</span></h2>
+  <p class="subtitle">Different sizes get different process. XS/S skip scoping entirely.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart TD
+    TASK["New Task Enters Pipeline"] --> SIZE{"Size?"}
+    SIZE -->|"XS / S"| SKIP["Auto-Skip to Backlog Top"]
+    SIZE -->|"M"| SCOPE["Define → Scope → Backlog"]
+    SIZE -->|"L / XL"| CHECK{"New Project?"}
+    CHECK -->|"Yes"| CREATE["Auto-Create Feature Project\nfrom Template"]
+    CHECK -->|"No"| SCOPE_LXL["Full PRD → Scope Review\n→ COO Approves"]
+    CREATE --> SCOPE_LXL
+    SKIP --> PULL["Developer Pulls into Active Work"]
+    SCOPE --> PULL
+    SCOPE_LXL --> PULL
+  </pre></div>
+  <div style="overflow-x:auto;"><table class="compare-table"><tr><th>Size</th><th>Type</th><th>Path</th><th>Approval</th></tr><tr><td><span class="tag tag-green">XS / S</span></td><td>Bug, config change</td><td>Intake → <strong>Auto-skip to Backlog top</strong></td><td>None</td></tr><tr><td><span class="tag tag-yellow">M</span></td><td>Enhancement, automation</td><td>Intake → Define → Scope → Backlog</td><td>COO reviews</td></tr><tr><td><span class="tag tag-orange">L / XL</span></td><td>Multi-feature system</td><td>Intake → Define → Scope → Feature Project</td><td>COO + stakeholders</td></tr></table></div>
+  <div class="callout callout-green" style="margin-top:1.5rem;"><h4><span class="tech-badge">TECHNICAL</span> XS/S Auto-Skip</h4><p><strong>Asana native rule:</strong> IF "Size" = XS or S → move to Backlog section. No Make.com needed.</p></div>
+</div></section>
+<section id="slack-intake"><div class="container">
+  <div class="section-label">Technical — Intake</div>
+  <h2>Slack Intake Command <span class="tech-badge">AUTOMATION</span></h2>
+  <p class="subtitle">Team captures work from any Slack conversation. AI reads thread context and generates a structured Asana task.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart TD
+    A["/task triggered in Slack"] --> B["Modal: Project, Type, Link, Screenshot"]
+    B --> C["Backend captures form + full thread"]
+    C --> D["Claude AI generates title, description, size"]
+    D --> E["Asana task created in Pipeline"]
+    E --> F["Confirmation posted to Slack"]
+  </pre></div>
+  <div class="card-grid cols-2" style="margin-top:1.5rem;">
+    <div class="card"><h4>Form Fields</h4><ul class="clean"><li><strong>Project Association</strong> — all projects + "New Project"</li><li><strong>Type</strong> — New Project | Bug & Quick Fix | Feature</li><li><strong>Link</strong> — optional</li><li><strong>Screenshot</strong> — optional upload</li></ul></div>
+    <div class="card"><h4>AI Backend</h4><ul class="clean"><li><strong>Captures</strong> message + full thread context</li><li><strong>Claude API</strong> generates title + description</li><li><strong>Auto-suggests</strong> size (XS/S/M/L/XL)</li><li><strong>Creates</strong> Asana task with all fields</li></ul></div>
+  </div>
+</div></section>
+<section id="active-work"><div class="container">
+  <div class="section-label">Technical — Execution</div>
+  <h2>Active Work Mechanism <span class="tech-badge">AUTOMATION</span></h2>
+  <p class="subtitle">A single dropdown field on any task controls what appears on the Active Work board.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart TD
+    A["Task in ANY project"] --> B["Set 'Active Work' = This Week"]
+    B --> C["Task appears on Active Work board"]
+    C --> D["Developer works on it"]
+    D --> E["Task completed"]
+    E --> F["Moves to 'Completed This Week'"]
+    F --> G["Hidden after 10 days"]
+    H["Monday 8AM"] --> I["All 'Next Week' → 'This Week'"]
+  </pre></div>
+  <div class="card" style="margin-top:1.5rem;"><h4><span class="tech-badge">CUSTOM FIELD</span> "Active Work" Dropdown</h4><table class="compare-table" style="margin-top:0.8rem;"><tr><th>Value</th><th>Effect</th></tr><tr><td><strong>This Week</strong></td><td>Task appears in "This Week" section</td></tr><tr><td><strong>Next Week</strong></td><td>Appears in "Next Week" — auto-rolls Monday</td></tr><tr><td><em>(empty)</em></td><td>Not on board</td></tr></table><p class="text-muted" style="font-size:0.85rem;margin-top:1rem;">Field exists on <strong>Pipeline & Backlog</strong> and on the <strong>Feature Project Template</strong> (inherited by every new project).</p></div>
+  <h3 style="margin-top:2rem;">Active Work Board — COO View</h3>
+  <div class="board">
+    <div class="board-col"><div class="board-col-title">This Week</div><div class="board-card"><span class="tag tag-orange" style="font-size:0.65rem;">L</span> Build scoring UI<div class="board-card-sub">KPI Tool</div></div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">S</span> Fix Clay workflow<div class="board-card-sub">Pipeline</div></div></div>
+    <div class="board-col"><div class="board-col-title">In Progress</div><div class="board-card"><span class="tag tag-orange" style="font-size:0.65rem;">L</span> API endpoint<div class="board-card-sub">Landing Page Gen</div></div></div>
+    <div class="board-col"><div class="board-col-title">In Review</div><div class="board-card"><span class="tag tag-yellow" style="font-size:0.65rem;">M</span> CSV export<div class="board-card-sub">Waiting: Ops</div></div></div>
+    <div class="board-col"><div class="board-col-title">Blocked</div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">S</span> Auth token<div class="board-card-sub">Needs: COO decision</div></div></div>
+    <div class="board-col"><div class="board-col-title">Completed</div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">XS</span> CSV bug fix<div class="board-card-sub">✅ Mon</div></div></div>
+  </div>
+</div></section>
+<section id="new-project"><div class="container">
+  <div class="section-label">Technical — Project Creation</div>
+  <h2>New Project Auto-Setup <span class="tech-badge">AUTOMATION</span></h2>
+  <p class="subtitle">When a task is designated as a new project, the system creates a Feature Project from template with everything pre-configured.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart TD
+    A["Type = 'New Project'\nOR Association = 'New Project'"] --> B["Make.com triggers"]
+    B --> C["Create Project from Template\n4 phases + milestones"]
+    C --> D["Active Work field pre-attached"]
+    C --> E["Copy PRD from Pipeline task"]
+    C --> F["Add to Portfolio"]
+    D --> G["Update Project Association dropdown"]
+    E --> G
+    F --> G
+    G --> H["Slack notification with link"]
+  </pre></div>
+  <div class="card-grid cols-2" style="margin-top:1.5rem;">
+    <div class="card"><h4>Trigger</h4><ul class="clean"><li><strong>Type</strong> = "New Project"</li><li>OR <strong>Project Association</strong> = "New Project"</li></ul></div>
+    <div class="card"><h4>Template Creates</h4><ul class="clean"><li><strong>4 phases:</strong> Scope → MVP → Refinement → Completion</li><li><strong>3 milestones:</strong> Scope Review, MVP Review, Completion Review</li><li><strong>Active Work field</strong> + multi-home rule pre-attached</li></ul></div>
+  </div>
+  <div class="callout callout-yellow" style="margin-top:1rem;"><h4>Critical: Dropdown Update</h4><p>After creating the project, the automation <strong>adds a new option to "Project Association" dropdown</strong> via Asana API — future <code>/task</code> commands immediately show the new project.</p></div>
+</div></section>
+<section id="gates"><div class="container">
+  <div class="section-label">Quality Control</div>
+  <h2>Review Checkpoints <span class="vs-badge">ADAPTED</span></h2>
+  <p class="subtitle">Three checkpoints for L/XL. Each in an existing meeting slot.</p>
+  <div class="phase-timeline">
+    <div class="phase-item"><div class="phase-num" style="background:var(--accent-dim);color:var(--accent);">1</div><div class="phase-content"><h4>Scope Review</h4><p>Before building. PRD + impl plan. <strong>COO approves before work starts.</strong></p></div></div>
+    <div class="phase-item"><div class="phase-num" style="background:var(--yellow-dim);color:var(--yellow);">2</div><div class="phase-content"><h4>MVP Review</h4><p>Working V1 demoed live. <strong>In existing bi-weekly.</strong></p></div></div>
+    <div class="phase-item"><div class="phase-num" style="background:var(--green-dim);color:var(--green);">3</div><div class="phase-content"><h4>Completion Review</h4><p>Final build + docs. Sign-off. <strong>Ship it.</strong></p></div></div>
+  </div>
+  <hr class="divider">
+  <h3>GACC <span class="vs-badge">ADAPTED</span></h3>
+  <div class="callout callout-yellow"><p><strong>GACC for customer-facing features.</strong> Internal systems use <strong>Problem → Solution → Success Metric</strong>.</p></div>
+  <h3 style="margin-top:1.5rem;">Decision Rights <span class="kept-badge">KEPT</span></h3>
+  <div style="overflow-x:auto;"><table class="compare-table"><tr><th>Decision</th><th>XS/S</th><th>M</th><th>L/XL</th></tr><tr><td class="label-col">What to work on</td><td>Developer</td><td>Backlog rank</td><td>COO + Dev</td></tr><tr><td class="label-col">How to build</td><td>Developer</td><td>Developer</td><td>Developer</td></tr><tr><td class="label-col">PRD approval</td><td>N/A</td><td>N/A</td><td>COO + Stakeholder</td></tr><tr><td class="label-col">Launch sign-off</td><td>Developer</td><td>Developer</td><td>COO + Stakeholder</td></tr></table></div>
+</div></section>
+<section id="transcript"><div class="container">
+  <div class="section-label">Technical — Meeting Intelligence</div>
+  <h2>Transcript → Asana <span class="tech-badge">V1 PRIORITY</span></h2>
+  <p class="subtitle">Meeting recordings are transcribed, analyzed by AI, and converted into Asana tasks automatically.</p>
+  <div class="diagram-wrap"><pre class="mermaid">
+flowchart TD
+    A["Meeting recorded by Fireflies"] --> B["Transcript webhook → Make.com"]
+    B --> C["Claude AI analyzes transcript"]
+    C --> D["Extracts action items, tasks,\nmilestones, blockers"]
+    D --> E["Creates Asana tasks in correct projects"]
+    E --> F["Slack summary with links"]
+  </pre></div>
+  <div class="card"><h4>AI Extracts From Every Meeting</h4><div class="card-grid cols-3" style="margin-top:0.8rem;gap:0.8rem;"><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-accent" style="font-size:0.65rem;">ACTION ITEMS</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">With owners → Active Work</p></div><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-green" style="font-size:0.65rem;">NEW REQUESTS</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">Features → Pipeline</p></div><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-orange" style="font-size:0.65rem;">MILESTONES</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">Dates → Project sections</p></div></div></div>
+</div></section>
+<section id="operations"><div class="container">
+  <div class="section-label">Technical — Weekly Ops</div>
+  <h2>Automated Operations</h2>
+  <p class="subtitle">Two automations keep Active Work accurate without manual effort.</p>
+  <div class="card-grid cols-2">
+    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.6rem;">MONDAY 8AM</span><h4>Weekly Rollover</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Make.com scheduled scenario. All "Next Week" → "This Week."</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Make.com → Asana API</p></div>
+    <div class="card" style="border-top:3px solid var(--green);"><span class="tag tag-green" style="margin-bottom:0.6rem;">ON COMPLETION</span><h4>Done Clearing</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Completed → "Completed This Week." Filter hides >10 days.</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Asana native rule + saved filter</p></div>
+  </div>
+</div></section>
+<section id="capacity"><div class="container">
+  <div class="section-label">Planning</div>
+  <h2>Capacity Planning <span class="vs-badge">ADAPTED</span></h2>
+  <p class="subtitle">~60 working days per quarter.</p>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">L/XL Feature Projects</span><span style="font-size:0.85rem;color:var(--orange);font-weight:600;">24d (40%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:40%;height:100%;background:var(--orange);border-radius:4px;"></div></div></div>
+    <div style="margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">M Enhancements</span><span style="font-size:0.85rem;color:var(--accent);font-weight:600;">12d (20%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:20%;height:100%;background:var(--accent);border-radius:4px;"></div></div></div>
+    <div style="margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">Ops, Support & Training</span><span style="font-size:0.85rem;color:var(--purple);font-weight:600;">12d (20%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:20%;height:100%;background:var(--purple);border-radius:4px;"></div></div></div>
+    <div style="margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">Scoping</span><span style="font-size:0.85rem;color:var(--green);font-weight:600;">6d (10%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--green);border-radius:4px;"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">Buffer</span><span style="font-size:0.85rem;color:var(--yellow);font-weight:600;">6d (10%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--yellow);border-radius:4px;"></div></div></div>
+  </div>
+</div></section>
+<section id="build-order"><div class="container">
+  <div class="section-label">Implementation</div>
+  <h2>Build Order</h2>
+  <p class="subtitle">3-week rollout. Structure → Automation → Intelligence.</p>
+  <div class="card-grid cols-3">
+    <div class="card" style="border-top:3px solid var(--accent);"><span class="tag tag-accent" style="margin-bottom:0.8rem;">WEEK 1 — STRUCTURE</span><div class="build-step"><div class="step-num">01</div>Portfolio + 2 core projects</div><div class="build-step"><div class="step-num">02</div>Custom fields (Size, Type, Active Work, Project Association)</div><div class="build-step"><div class="step-num">03</div>Feature Project template</div><div class="build-step"><div class="step-num">04</div>Asana rules (auto-skip, done clearing, multi-home)</div><div class="build-step"><div class="step-num">05</div>Completed >10d filter</div></div>
+    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.8rem;">WEEK 2 — AUTOMATION</span><div class="build-step"><div class="step-num">06</div>Slack /task + AI backend</div><div class="build-step"><div class="step-num">07</div>New Project Auto-Setup</div><div class="build-step"><div class="step-num">08</div>Weekly Rollover (Mon 8AM)</div><div class="build-step"><div class="step-num">09</div>End-to-end testing</div></div>
+    <div class="card" style="border-top:3px solid var(--purple);"><span class="tag tag-purple" style="margin-bottom:0.8rem;">WEEK 3 — INTELLIGENCE</span><div class="build-step"><div class="step-num">10</div>Transcript → Asana system</div><div class="build-step"><div class="step-num">11</div>Pilot with real meeting</div><div class="build-step"><div class="step-num">12</div>Calibrate AI extraction</div></div>
+  </div>
+  <hr class="divider">
+  <h3>Adaptations Summary</h3>
+  <div style="overflow-x:auto;"><table class="compare-table"><tr><th style="width:25%;">Aspect</th><th style="width:35%;">Original</th><th style="width:35%;">Implementation</th></tr><tr><td class="label-col">Projects</td><td>5+ separate boards</td><td><strong>2 + Feature Projects when needed</strong></td></tr><tr><td class="label-col">Bugs</td><td>Separate board</td><td><strong>Same pipeline, auto-skip to backlog top</strong></td></tr><tr><td class="label-col">Multi-homing</td><td>Manual</td><td><strong>Automated via dropdown field</strong></td></tr><tr><td class="label-col">Task creation</td><td>Manual Asana entry</td><td><strong>Slack /task + AI</strong></td></tr><tr><td class="label-col">L/XL reviews</td><td>5 phases, 5+ gates</td><td><strong>3 checkpoints</strong></td></tr><tr><td class="label-col">GACC</td><td>All L/XL</td><td><strong>Customer-facing only</strong></td></tr><tr><td class="label-col">Project creation</td><td>Manual</td><td><strong>Auto from template + dropdown update</strong></td></tr><tr><td class="label-col">Meeting follow-up</td><td>Manual</td><td><strong>Transcript → AI → Asana</strong></td></tr><tr><td class="label-col">Capacity</td><td>0% ops/support</td><td><strong>20% allocated</strong></td></tr></table></div>
+</div></section>
+<section style="padding:3rem 0;border-top:1px solid var(--border);"><div class="container" style="text-align:center;"><p class="text-muted" style="font-size:0.85rem;">Product Development Workflow — Implementation Blueprint · March 2026</p></div></section>
+<script>
+mermaid.initialize({ startOnLoad:true, theme:'dark',
+  themeVariables:{ primaryColor:'#2a4a8a', primaryTextColor:'#e2e4e9', primaryBorderColor:'#4f8cff', lineColor:'#5c6070', secondaryColor:'#1c2029', tertiaryColor:'#151820', background:'#151820', mainBkg:'#1c2029', nodeBorder:'#4f8cff', clusterBkg:'#151820', clusterBorder:'#252a35', titleColor:'#e2e4e9', edgeLabelBackground:'#151820' },
+  flowchart:{ curve:'basis', padding:20 }
+});
+</script>
+</body>
+</html>
