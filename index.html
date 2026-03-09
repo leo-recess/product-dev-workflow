@@ -91,8 +91,9 @@
 <body>
 <nav><div class="nav-inner">
   <span class="nav-title">Implementation Blueprint</span>
-  <a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#routing">Routing</a><a href="#slack-intake">Slack Intake</a><a href="#active-work">Active Work</a><a href="#new-project">Project Setup</a><a href="#gates">Checkpoints</a><a href="#transcript">Transcript</a><a href="#operations">Operations</a><a href="#capacity">Capacity</a><a href="#build-order">Build Order</a>
+  <a href="#overview">Overview</a><a href="#architecture">Architecture</a><a href="#routing">Routing</a><a href="#slack-intake">/backlog</a><a href="#active-work">Active Work</a><a href="#gates">Checkpoints</a><a href="#transcript">Transcript</a><a href="#capacity">Capacity</a><a href="#build-order">Build Order</a>
 </div></nav>
+
 <section id="overview"><div class="container">
   <div class="section-label">Starting Point</div>
   <h1>Product Development Workflow<br><span style="color:var(--accent)">— Implementation Blueprint</span></h1>
@@ -103,24 +104,45 @@
     <div class="card"><h4 style="color:var(--green)">Developer Gets</h4><ul class="clean"><li><strong>Automated task capture</strong> — Slack requests become Asana tasks</li><li><strong>Minimal board maintenance</strong> — automations keep projects in sync</li><li><strong>Clear priorities</strong> — ranked backlog, no ambiguity on what's next</li></ul></div>
   </div>
 </div></section>
+
 <section id="architecture"><div class="container">
   <div class="section-label">Architecture</div>
   <h2>System Overview</h2>
   <p class="subtitle">One Portfolio. Two core projects. Feature projects when genuinely large. Automation handles routing.</p>
   <div class="diagram-wrap"><pre class="mermaid">
 flowchart LR
-    SLACK["Slack /task"] --> AI["AI Analyzes\nThread Context"]
+    CMD["/backlog\nin Slack"] --> MODAL["Slack Form\n(Project, Type, Link, Details)"]
+    MODAL --> AI["AI Analyzes\nForm + Thread"]
     AI --> PIPELINE["Pipeline & Backlog\n(COO Plans)"]
-    PIPELINE --> ACTIVE["Active Work\n(Dev Executes)"]
-    PIPELINE -->|"New Project"| FEATURE["Feature Project\n(Auto-Created)"]
-    FEATURE --> ACTIVE
+    PIPELINE -->|"XS/S/M scoped"| BACKLOG["Backlog\n(Ranked)"]
+    PIPELINE -->|"L/XL scoped +\nNew Project"| FEATURE["Feature Project\n(Auto-Created)"]
+    BACKLOG -->|"COO/Dev sets dropdown"| ACTIVE["Active Work\n(Dev Executes)"]
+    FEATURE -->|"COO/Dev sets dropdown"| ACTIVE
   </pre></div>
   <div class="card-grid cols-2" style="margin-top:1.5rem;">
-    <div class="card" style="border-top:3px solid var(--accent)"><span class="tag tag-accent" style="margin-bottom:0.6rem;">PROJECT 1 — COO OWNS</span><h3>Pipeline & Backlog</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Everything enters here. Intake, scoping, prioritization.</p><div class="flow"><div class="flow-step">Intake</div><span class="flow-arrow">→</span><div class="flow-step">Define / PRD</div><span class="flow-arrow">→</span><div class="flow-step">Scope & Estimate</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--green);color:var(--green);">Backlog (Ranked)</div></div></div>
+    <div class="card" style="border-top:3px solid var(--accent)"><span class="tag tag-accent" style="margin-bottom:0.6rem;">PROJECT 1 — COO OWNS</span><h3>Pipeline & Backlog</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Everything enters here. Intake, scoping, prioritization.</p><div class="flow"><div class="flow-step">Intake</div><span class="flow-arrow">→</span><div class="flow-step">Define / PRD</div><span class="flow-arrow">→</span><div class="flow-step">Scope & Estimate</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--yellow);color:var(--yellow);">Ready</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--green);color:var(--green);">Backlog (Ranked)</div></div></div>
     <div class="card" style="border-top:3px solid var(--green)"><span class="tag tag-green" style="margin-bottom:0.6rem;">PROJECT 2 — DEVELOPER OWNS</span><h3>Active Work</h3><p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">What's being executed. Developer pulls from backlog.</p><div class="flow"><div class="flow-step">This Week</div><span class="flow-arrow">→</span><div class="flow-step">In Progress</div><span class="flow-arrow">→</span><div class="flow-step">In Review</div><span class="flow-arrow">→</span><div class="flow-step" style="border-color:var(--green);color:var(--green);">Completed</div></div><div class="flow"><div class="flow-step" style="border-color:var(--red);">Blocked</div><div class="flow-step" style="border-color:var(--yellow);">Next Week</div></div></div>
   </div>
-  <div class="card" style="margin-top:1rem;border-top:3px solid var(--purple);"><span class="tag tag-purple" style="margin-bottom:0.6rem;">AUTO-CREATED WHEN NEEDED</span><h3>Feature Projects (L/XL)</h3><p class="text-muted" style="font-size:0.85rem;">Large builds get their own project — auto-created from template with phases and milestones.</p></div>
+  <div class="card" style="margin-top:1rem;border-top:3px solid var(--purple);"><span class="tag tag-purple" style="margin-bottom:0.6rem;">AUTO-CREATED WHEN NEEDED</span><h3>Feature Projects (L/XL)</h3>
+    <div class="diagram-wrap" style="margin-top:0.8rem;margin-bottom:0;"><pre class="mermaid">
+flowchart TD
+    A["Task reaches 'Ready' stage\nin Pipeline"] --> B{"Type = 'New Project'\nOR Association = 'New Project'?"}
+    B -->|"Yes"| C["Create Project from Template"]
+    C --> D["Standard tasks added:\nInitiation, Scope Review,\nMVP Review, Completion Review"]
+    D --> E["AI analyzes PRD document\nExtracts key features/components"]
+    E --> F["Extracted features added\nas tasks to project"]
+    F --> G["New option created in\n'Project Association' dropdown"]
+    G --> H["Project added to Portfolio\n+ Slack notification"]
+    B -->|"No"| I["Task stays in Backlog\nor assigned to existing project"]
+    </pre></div>
+    <div class="card-grid cols-3" style="margin-top:1rem;gap:0.8rem;">
+      <div class="card" style="padding:1rem;"><h4>Trigger</h4><ul class="clean"><li>Task reaches <strong>"Ready"</strong> stage</li><li>AND <strong>Type</strong> or <strong>Association</strong> = "New Project"</li></ul></div>
+      <div class="card" style="padding:1rem;"><h4>Template Creates</h4><ul class="clean"><li><strong>Standard tasks:</strong> Initiation, Scope Review, MVP Review, Completion Review</li><li><strong>Active Work field</strong> + multi-home rule</li></ul></div>
+      <div class="card" style="padding:1rem;"><h4>AI Populates</h4><ul class="clean"><li><strong>Analyzes PRD</strong> from Pipeline task</li><li><strong>Extracts</strong> features/components</li><li><strong>Creates tasks</strong> for each + updates Project Association dropdown</li></ul></div>
+    </div>
+  </div>
 </div></section>
+
 <section id="routing"><div class="container">
   <div class="section-label">Intake & Routing</div>
   <h2>Size-Based Routing <span class="kept-badge">KEPT</span></h2>
@@ -128,51 +150,55 @@ flowchart LR
   <div class="diagram-wrap"><pre class="mermaid">
 flowchart TD
     TASK["New Task Enters Pipeline"] --> SIZE{"Size?"}
-    SIZE -->|"XS / S"| SKIP["Auto-Skip to Backlog Top"]
-    SIZE -->|"M"| SCOPE["Define → Scope → Backlog"]
-    SIZE -->|"L / XL"| CHECK{"New Project?"}
-    CHECK -->|"Yes"| CREATE["Auto-Create Feature Project\nfrom Template"]
-    CHECK -->|"No"| SCOPE_LXL["Full PRD → Scope Review\n→ COO Approves"]
-    CREATE --> SCOPE_LXL
-    SKIP --> PULL["Developer Pulls into Active Work"]
-    SCOPE --> PULL
-    SCOPE_LXL --> PULL
+    SIZE -->|"XS / S"| SKIP["Auto-Skip to\nBacklog Top"]
+    SIZE -->|"M"| M_SCOPE["Define → Scope\n→ Ready → Backlog"]
+    SIZE -->|"L / XL"| LXL_SCOPE["Full PRD → Scope\n→ COO Approves → Ready"]
+    LXL_SCOPE --> CHECK{"Type = New Project\nOR Association = New Project?"}
+    CHECK -->|"Yes"| CREATE["Auto-Create\nFeature Project"]
+    CHECK -->|"No"| EXISTING["Add to Existing\nFeature Project"]
+    SKIP --> PULL["COO/Dev Sets 'Active Work'\nDropdown → Active Work Board"]
+    M_SCOPE --> PULL
+    CREATE --> PULL
+    EXISTING --> PULL
   </pre></div>
   <div style="overflow-x:auto;"><table class="compare-table"><tr><th>Size</th><th>Type</th><th>Path</th><th>Approval</th></tr><tr><td><span class="tag tag-green">XS / S</span></td><td>Bug, config change</td><td>Intake → <strong>Auto-skip to Backlog top</strong></td><td>None</td></tr><tr><td><span class="tag tag-yellow">M</span></td><td>Enhancement, automation</td><td>Intake → Define → Scope → Backlog</td><td>COO reviews</td></tr><tr><td><span class="tag tag-orange">L / XL</span></td><td>Multi-feature system</td><td>Intake → Define → Scope → Feature Project</td><td>COO + stakeholders</td></tr></table></div>
   <div class="callout callout-green" style="margin-top:1.5rem;"><h4><span class="tech-badge">TECHNICAL</span> XS/S Auto-Skip</h4><p><strong>Asana native rule:</strong> IF "Size" = XS or S → move to Backlog section. No Make.com needed.</p></div>
 </div></section>
+
 <section id="slack-intake"><div class="container">
   <div class="section-label">Technical — Intake</div>
-  <h2>Slack Intake Command <span class="tech-badge">AUTOMATION</span></h2>
+  <h2>Slack /backlog Command <span class="tech-badge">AUTOMATION</span></h2>
   <p class="subtitle">Team captures work from any Slack conversation. AI reads thread context and generates a structured Asana task.</p>
   <div class="diagram-wrap"><pre class="mermaid">
 flowchart TD
-    A["/task triggered in Slack"] --> B["Modal: Project, Type, Link, Screenshot"]
+    A["/backlog triggered in Slack"] --> B["Modal: Project Association,\nType, Link, Details"]
     B --> C["Backend captures form + full thread"]
     C --> D["Claude AI generates title, description, size"]
     D --> E["Asana task created in Pipeline"]
     E --> F["Confirmation posted to Slack"]
   </pre></div>
   <div class="card-grid cols-2" style="margin-top:1.5rem;">
-    <div class="card"><h4>Form Fields</h4><ul class="clean"><li><strong>Project Association</strong> — all projects + "New Project"</li><li><strong>Type</strong> — New Project | Bug & Quick Fix | Feature</li><li><strong>Link</strong> — optional</li><li><strong>Screenshot</strong> — optional upload</li></ul></div>
+    <div class="card"><h4>Form Fields</h4><ul class="clean"><li><strong>Project Association</strong> — all active projects + "New Project"</li><li><strong>Type</strong> — New Project | Bug & Quick Fix | Feature</li><li><strong>Link</strong> — optional</li><li><strong>Additional Details</strong> — optional free text</li></ul></div>
     <div class="card"><h4>AI Backend</h4><ul class="clean"><li><strong>Captures</strong> message + full thread context</li><li><strong>Claude API</strong> generates title + description</li><li><strong>Auto-suggests</strong> size (XS/S/M/L/XL)</li><li><strong>Creates</strong> Asana task with all fields</li></ul></div>
   </div>
 </div></section>
+
 <section id="active-work"><div class="container">
   <div class="section-label">Technical — Execution</div>
   <h2>Active Work Mechanism <span class="tech-badge">AUTOMATION</span></h2>
   <p class="subtitle">A single dropdown field on any task controls what appears on the Active Work board.</p>
   <div class="diagram-wrap"><pre class="mermaid">
 flowchart TD
-    A["Task in ANY project"] --> B["Set 'Active Work' = This Week"]
-    B --> C["Task appears on Active Work board"]
-    C --> D["Developer works on it"]
-    D --> E["Task completed"]
-    E --> F["Moves to 'Completed This Week'"]
-    F --> G["Hidden after 10 days"]
-    H["Monday 8AM"] --> I["All 'Next Week' → 'This Week'"]
+    SOURCE["Task lives in source project\n(Pipeline/Backlog or Feature Project)"]
+    SOURCE --> SET["COO/Dev sets 'Active Work'\ndropdown = This Week"]
+    SET --> MULTI["Task MULTI-HOMED:\nstays in source + appears\non Active Work board"]
+    MULTI --> PROGRESS["In Progress → In Review"]
+    PROGRESS --> DONE["Completed"]
+    DONE --> CW["'Completed This Week' section\n(hidden after 10 days)"]
+    NW["COO/Dev sets dropdown\n= Next Week"] --> ROLL["Monday 8AM:\nauto-changes to This Week"]
+    ROLL --> MULTI
   </pre></div>
-  <div class="card" style="margin-top:1.5rem;"><h4><span class="tech-badge">CUSTOM FIELD</span> "Active Work" Dropdown</h4><table class="compare-table" style="margin-top:0.8rem;"><tr><th>Value</th><th>Effect</th></tr><tr><td><strong>This Week</strong></td><td>Task appears in "This Week" section</td></tr><tr><td><strong>Next Week</strong></td><td>Appears in "Next Week" — auto-rolls Monday</td></tr><tr><td><em>(empty)</em></td><td>Not on board</td></tr></table><p class="text-muted" style="font-size:0.85rem;margin-top:1rem;">Field exists on <strong>Pipeline & Backlog</strong> and on the <strong>Feature Project Template</strong> (inherited by every new project).</p></div>
+  <div class="card" style="margin-top:1.5rem;"><h4><span class="tech-badge">CUSTOM FIELD</span> "Active Work" Dropdown</h4><table class="compare-table" style="margin-top:0.8rem;"><tr><th>Value</th><th>Effect</th></tr><tr><td><strong>This Week</strong></td><td>Task appears in "This Week" section</td></tr><tr><td><strong>Next Week</strong></td><td>Appears in "Next Week" — auto-rolls Monday</td></tr><tr><td><strong>Rejected</strong></td><td>Task removed from Active Work board + moved to rejected section in source project</td></tr><tr><td><em>(empty)</em></td><td>Not on board</td></tr></table><p class="text-muted" style="font-size:0.85rem;margin-top:1rem;">Field exists on <strong>Pipeline & Backlog</strong> and on the <strong>Feature Project Template</strong> (inherited by every new project). Rejected trigger: Asana rule clears multi-home from Active Work and archives task in source project.</p></div>
   <h3 style="margin-top:2rem;">Active Work Board — COO View</h3>
   <div class="board">
     <div class="board-col"><div class="board-col-title">This Week</div><div class="board-card"><span class="tag tag-orange" style="font-size:0.65rem;">L</span> Build scoring UI<div class="board-card-sub">KPI Tool</div></div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">S</span> Fix Clay workflow<div class="board-card-sub">Pipeline</div></div></div>
@@ -181,29 +207,13 @@ flowchart TD
     <div class="board-col"><div class="board-col-title">Blocked</div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">S</span> Auth token<div class="board-card-sub">Needs: COO decision</div></div></div>
     <div class="board-col"><div class="board-col-title">Completed</div><div class="board-card"><span class="tag tag-green" style="font-size:0.65rem;">XS</span> CSV bug fix<div class="board-card-sub">✅ Mon</div></div></div>
   </div>
-</div></section>
-<section id="new-project"><div class="container">
-  <div class="section-label">Technical — Project Creation</div>
-  <h2>New Project Auto-Setup <span class="tech-badge">AUTOMATION</span></h2>
-  <p class="subtitle">When a task is designated as a new project, the system creates a Feature Project from template with everything pre-configured.</p>
-  <div class="diagram-wrap"><pre class="mermaid">
-flowchart TD
-    A["Type = 'New Project'\nOR Association = 'New Project'"] --> B["Make.com triggers"]
-    B --> C["Create Project from Template\n4 phases + milestones"]
-    C --> D["Active Work field pre-attached"]
-    C --> E["Copy PRD from Pipeline task"]
-    C --> F["Add to Portfolio"]
-    D --> G["Update Project Association dropdown"]
-    E --> G
-    F --> G
-    G --> H["Slack notification with link"]
-  </pre></div>
-  <div class="card-grid cols-2" style="margin-top:1.5rem;">
-    <div class="card"><h4>Trigger</h4><ul class="clean"><li><strong>Type</strong> = "New Project"</li><li>OR <strong>Project Association</strong> = "New Project"</li></ul></div>
-    <div class="card"><h4>Template Creates</h4><ul class="clean"><li><strong>4 phases:</strong> Scope → MVP → Refinement → Completion</li><li><strong>3 milestones:</strong> Scope Review, MVP Review, Completion Review</li><li><strong>Active Work field</strong> + multi-home rule pre-attached</li></ul></div>
+  <h3 style="margin-top:2rem;">Automated Operations</h3>
+  <div class="card-grid cols-2" style="margin-top:0.8rem;">
+    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.6rem;">MONDAY 8AM</span><h4>Weekly Rollover</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Make.com scheduled scenario. All "Next Week" → "This Week."</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Make.com → Asana API</p></div>
+    <div class="card" style="border-top:3px solid var(--green);"><span class="tag tag-green" style="margin-bottom:0.6rem;">ON COMPLETION</span><h4>Done Clearing</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Completed → "Completed This Week." Filter hides >10 days.</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Asana native rule + saved filter</p></div>
   </div>
-  <div class="callout callout-yellow" style="margin-top:1rem;"><h4>Critical: Dropdown Update</h4><p>After creating the project, the automation <strong>adds a new option to "Project Association" dropdown</strong> via Asana API — future <code>/task</code> commands immediately show the new project.</p></div>
 </div></section>
+
 <section id="gates"><div class="container">
   <div class="section-label">Quality Control</div>
   <h2>Review Checkpoints <span class="vs-badge">ADAPTED</span></h2>
@@ -213,12 +223,8 @@ flowchart TD
     <div class="phase-item"><div class="phase-num" style="background:var(--yellow-dim);color:var(--yellow);">2</div><div class="phase-content"><h4>MVP Review</h4><p>Working V1 demoed live. <strong>In existing bi-weekly.</strong></p></div></div>
     <div class="phase-item"><div class="phase-num" style="background:var(--green-dim);color:var(--green);">3</div><div class="phase-content"><h4>Completion Review</h4><p>Final build + docs. Sign-off. <strong>Ship it.</strong></p></div></div>
   </div>
-  <hr class="divider">
-  <h3>GACC <span class="vs-badge">ADAPTED</span></h3>
-  <div class="callout callout-yellow"><p><strong>GACC for customer-facing features.</strong> Internal systems use <strong>Problem → Solution → Success Metric</strong>.</p></div>
-  <h3 style="margin-top:1.5rem;">Decision Rights <span class="kept-badge">KEPT</span></h3>
-  <div style="overflow-x:auto;"><table class="compare-table"><tr><th>Decision</th><th>XS/S</th><th>M</th><th>L/XL</th></tr><tr><td class="label-col">What to work on</td><td>Developer</td><td>Backlog rank</td><td>COO + Dev</td></tr><tr><td class="label-col">How to build</td><td>Developer</td><td>Developer</td><td>Developer</td></tr><tr><td class="label-col">PRD approval</td><td>N/A</td><td>N/A</td><td>COO + Stakeholder</td></tr><tr><td class="label-col">Launch sign-off</td><td>Developer</td><td>Developer</td><td>COO + Stakeholder</td></tr></table></div>
 </div></section>
+
 <section id="transcript"><div class="container">
   <div class="section-label">Technical — Meeting Intelligence</div>
   <h2>Transcript → Asana <span class="tech-badge">V1 PRIORITY</span></h2>
@@ -233,15 +239,7 @@ flowchart TD
   </pre></div>
   <div class="card"><h4>AI Extracts From Every Meeting</h4><div class="card-grid cols-3" style="margin-top:0.8rem;gap:0.8rem;"><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-accent" style="font-size:0.65rem;">ACTION ITEMS</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">With owners → Active Work</p></div><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-green" style="font-size:0.65rem;">NEW REQUESTS</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">Features → Pipeline</p></div><div style="background:var(--surface-2);border-radius:8px;padding:0.8rem;"><span class="tag tag-orange" style="font-size:0.65rem;">MILESTONES</span><p class="text-muted" style="font-size:0.82rem;margin-top:0.4rem;">Dates → Project sections</p></div></div></div>
 </div></section>
-<section id="operations"><div class="container">
-  <div class="section-label">Technical — Weekly Ops</div>
-  <h2>Automated Operations</h2>
-  <p class="subtitle">Two automations keep Active Work accurate without manual effort.</p>
-  <div class="card-grid cols-2">
-    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.6rem;">MONDAY 8AM</span><h4>Weekly Rollover</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Make.com scheduled scenario. All "Next Week" → "This Week."</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Make.com → Asana API</p></div>
-    <div class="card" style="border-top:3px solid var(--green);"><span class="tag tag-green" style="margin-bottom:0.6rem;">ON COMPLETION</span><h4>Done Clearing</h4><p class="text-muted" style="font-size:0.85rem;margin-top:0.5rem;">Completed → "Completed This Week." Filter hides >10 days.</p><p class="text-muted" style="font-size:0.82rem;margin-top:0.5rem;"><strong>Stack:</strong> Asana native rule + saved filter</p></div>
-  </div>
-</div></section>
+
 <section id="capacity"><div class="container">
   <div class="section-label">Planning</div>
   <h2>Capacity Planning <span class="vs-badge">ADAPTED</span></h2>
@@ -254,20 +252,23 @@ flowchart TD
     <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span style="font-size:0.85rem;font-weight:600;">Buffer</span><span style="font-size:0.85rem;color:var(--yellow);font-weight:600;">6d (10%)</span></div><div style="background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;"><div style="width:10%;height:100%;background:var(--yellow);border-radius:4px;"></div></div></div>
   </div>
 </div></section>
+
 <section id="build-order"><div class="container">
   <div class="section-label">Implementation</div>
   <h2>Build Order</h2>
   <p class="subtitle">3-week rollout. Structure → Automation → Intelligence.</p>
   <div class="card-grid cols-3">
     <div class="card" style="border-top:3px solid var(--accent);"><span class="tag tag-accent" style="margin-bottom:0.8rem;">WEEK 1 — STRUCTURE</span><div class="build-step"><div class="step-num">01</div>Portfolio + 2 core projects</div><div class="build-step"><div class="step-num">02</div>Custom fields (Size, Type, Active Work, Project Association)</div><div class="build-step"><div class="step-num">03</div>Feature Project template</div><div class="build-step"><div class="step-num">04</div>Asana rules (auto-skip, done clearing, multi-home)</div><div class="build-step"><div class="step-num">05</div>Completed >10d filter</div></div>
-    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.8rem;">WEEK 2 — AUTOMATION</span><div class="build-step"><div class="step-num">06</div>Slack /task + AI backend</div><div class="build-step"><div class="step-num">07</div>New Project Auto-Setup</div><div class="build-step"><div class="step-num">08</div>Weekly Rollover (Mon 8AM)</div><div class="build-step"><div class="step-num">09</div>End-to-end testing</div></div>
+    <div class="card" style="border-top:3px solid var(--orange);"><span class="tag tag-orange" style="margin-bottom:0.8rem;">WEEK 2 — AUTOMATION</span><div class="build-step"><div class="step-num">06</div>Slack /backlog + AI backend</div><div class="build-step"><div class="step-num">07</div>New Project Auto-Setup</div><div class="build-step"><div class="step-num">08</div>Weekly Rollover (Mon 8AM)</div><div class="build-step"><div class="step-num">09</div>End-to-end testing</div></div>
     <div class="card" style="border-top:3px solid var(--purple);"><span class="tag tag-purple" style="margin-bottom:0.8rem;">WEEK 3 — INTELLIGENCE</span><div class="build-step"><div class="step-num">10</div>Transcript → Asana system</div><div class="build-step"><div class="step-num">11</div>Pilot with real meeting</div><div class="build-step"><div class="step-num">12</div>Calibrate AI extraction</div></div>
   </div>
   <hr class="divider">
   <h3>Adaptations Summary</h3>
-  <div style="overflow-x:auto;"><table class="compare-table"><tr><th style="width:25%;">Aspect</th><th style="width:35%;">Original</th><th style="width:35%;">Implementation</th></tr><tr><td class="label-col">Projects</td><td>5+ separate boards</td><td><strong>2 + Feature Projects when needed</strong></td></tr><tr><td class="label-col">Bugs</td><td>Separate board</td><td><strong>Same pipeline, auto-skip to backlog top</strong></td></tr><tr><td class="label-col">Multi-homing</td><td>Manual</td><td><strong>Automated via dropdown field</strong></td></tr><tr><td class="label-col">Task creation</td><td>Manual Asana entry</td><td><strong>Slack /task + AI</strong></td></tr><tr><td class="label-col">L/XL reviews</td><td>5 phases, 5+ gates</td><td><strong>3 checkpoints</strong></td></tr><tr><td class="label-col">GACC</td><td>All L/XL</td><td><strong>Customer-facing only</strong></td></tr><tr><td class="label-col">Project creation</td><td>Manual</td><td><strong>Auto from template + dropdown update</strong></td></tr><tr><td class="label-col">Meeting follow-up</td><td>Manual</td><td><strong>Transcript → AI → Asana</strong></td></tr><tr><td class="label-col">Capacity</td><td>0% ops/support</td><td><strong>20% allocated</strong></td></tr></table></div>
+  <div style="overflow-x:auto;"><table class="compare-table"><tr><th style="width:25%;">Aspect</th><th style="width:35%;">Original</th><th style="width:35%;">Implementation</th></tr><tr><td class="label-col">Projects</td><td>5+ separate boards</td><td><strong>2 + Feature Projects when needed</strong></td></tr><tr><td class="label-col">Bugs</td><td>Separate board</td><td><strong>Same pipeline, auto-skip to backlog top</strong></td></tr><tr><td class="label-col">Multi-homing</td><td>Manual</td><td><strong>Automated via dropdown field</strong></td></tr><tr><td class="label-col">Task creation</td><td>Manual Asana entry</td><td><strong>Slack /backlog + AI</strong></td></tr><tr><td class="label-col">L/XL reviews</td><td>5 phases, 5+ gates</td><td><strong>3 checkpoints</strong></td></tr><tr><td class="label-col">Project creation</td><td>Manual</td><td><strong>Auto from template + dropdown update</strong></td></tr><tr><td class="label-col">Meeting follow-up</td><td>Manual</td><td><strong>Transcript → AI → Asana</strong></td></tr><tr><td class="label-col">Capacity</td><td>0% ops/support</td><td><strong>20% allocated</strong></td></tr></table></div>
 </div></section>
+
 <section style="padding:3rem 0;border-top:1px solid var(--border);"><div class="container" style="text-align:center;"><p class="text-muted" style="font-size:0.85rem;">Product Development Workflow — Implementation Blueprint · March 2026</p></div></section>
+
 <script>
 mermaid.initialize({ startOnLoad:true, theme:'dark',
   themeVariables:{ primaryColor:'#2a4a8a', primaryTextColor:'#e2e4e9', primaryBorderColor:'#4f8cff', lineColor:'#5c6070', secondaryColor:'#1c2029', tertiaryColor:'#151820', background:'#151820', mainBkg:'#1c2029', nodeBorder:'#4f8cff', clusterBkg:'#151820', clusterBorder:'#252a35', titleColor:'#e2e4e9', edgeLabelBackground:'#151820' },
